@@ -1,0 +1,10 @@
+# Nunca subir datos: el repositorio lleva solo el código.
+*.xlsx
+*.xlsm
+*.xls
+*.xlsb
+*.ods
+*.csv
+*.zip
+node_modules/
+entregas/
