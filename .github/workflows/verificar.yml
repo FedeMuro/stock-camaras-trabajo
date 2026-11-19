@@ -1,0 +1,59 @@
+# Verifica cada cambio y publica la app SOLO si todo pasa.
+name: Verificar y publicar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sin datos en el repositorio
+        run: |
+          if git ls-files | grep -Ei '\.(xlsx|xlsm|xls|xlsb|ods|csv)$'; then
+            echo "::error::Hay planillas en el repositorio. Borralas: acá va solo el código, nunca datos."
+            exit 1
+          fi
+
+      - name: Instalar la librería de Excel (versión fija)
+        run: npm ci
+
+      - name: Pruebas del motor
+        run: npm test
+
+      - name: La app publicada es exactamente la que sale de las fuentes
+        run: |
+          npm run build
+          git diff --exit-code index.html || { echo "::error::index.html no coincide con las fuentes. Volvé a armarlo con 'npm run build'."; exit 1; }
+
+  publicar:
+    needs: verificar
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Armar el sitio (solo la app, nada más)
+        run: mkdir _sitio && cp index.html _sitio/index.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _sitio
+      - id: despliegue
+        uses: actions/deploy-pages@v4
