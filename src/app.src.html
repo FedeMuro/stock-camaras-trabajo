@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stock de causas</title>
+<style>
+:root{
+  --bg:#f4f5f7; --panel:#fff; --ink:#1d2430; --muted:#5d6675; --line:#dfe3ea; --soft:#eef1f6;
+  --accent:#1f4e78; --accent-ink:#fff; --ok:#1e7a46; --ok-bg:#e7f5ec; --warn:#8a5a00; --warn-bg:#fff4dc;
+  --bad:#a12a2a; --bad-bg:#fbe9e9; --info-bg:#e8f0f8;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#14171c; --panel:#1c2027; --ink:#e7eaf0; --muted:#9aa3b2; --line:#2e343e; --soft:#242a33;
+  --accent:#7fb0de; --accent-ink:#0e1520; --ok:#6fcf97; --ok-bg:#16301f; --warn:#f2c46b; --warn-bg:#33290f;
+  --bad:#f08c8c; --bad-bg:#3a1a1a; --info-bg:#1d2a38; } }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+header{background:var(--accent);color:var(--accent-ink);padding:14px 24px;display:flex;flex-wrap:wrap;gap:8px 24px;align-items:baseline;justify-content:space-between}
+header h1{margin:0;font-size:19px;font-weight:650;letter-spacing:.2px}
+header .sub{font-size:13px;opacity:.85}
+main{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+section.paso{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin:0 0 16px;padding:18px 20px}
+.paso h2{margin:0 0 4px;font-size:16px;display:flex;gap:10px;align-items:center}
+.num{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:13px;font-weight:700;flex:none}
+.paso p.ayuda{margin:2px 0 12px 34px;color:var(--muted);font-size:13.5px}
+.cuerpo{margin-left:34px}
+.inactivo{opacity:.45;pointer-events:none}
+select,input[type=text],input[type=date],input[type=search]{max-width:100%;font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+button{font:inherit;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);padding:7px 14px;cursor:pointer;font-weight:600}
+button.sec{background:transparent;color:var(--accent)}
+button.chico{padding:3px 9px;font-size:13px;font-weight:500}
+button:disabled{opacity:.45;cursor:not-allowed}
+#drop{border:2px dashed var(--line);border-radius:10px;padding:22px;text-align:center;color:var(--muted);cursor:pointer;transition:.15s}
+#drop.sobre{border-color:var(--accent);background:var(--info-bg);color:var(--ink)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--soft);font-weight:600;position:sticky;top:0}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tabla{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;font-weight:600;background:var(--soft);white-space:nowrap}
+.tag.ok{background:var(--ok-bg);color:var(--ok)} .tag.warn{background:var(--warn-bg);color:var(--warn)} .tag.bad{background:var(--bad-bg);color:var(--bad)}
+.msg{border-radius:8px;padding:10px 12px;margin:8px 0;font-size:14px}
+.msg.ok{background:var(--ok-bg);color:var(--ok)} .msg.warn{background:var(--warn-bg);color:var(--warn)} .msg.bad{background:var(--bad-bg);color:var(--bad)} .msg.info{background:var(--info-bg)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:4px 0 16px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi .v{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .l{color:var(--muted);font-size:13px}
+.fila{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0}
+.filtro{font-size:12px;color:var(--muted);white-space:pre-wrap;max-width:420px}
+details{margin:8px 0} summary{cursor:pointer;font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:820px){.grid2{grid-template-columns:1fr}.cuerpo,.paso p.ayuda{margin-left:0}}
+.dep{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto minmax(140px,220px);gap:6px 10px;align-items:center;font-size:13.5px}
+.dep>.h{font-weight:600;color:var(--muted);font-size:12.5px}
+.caja{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-top:10px;background:var(--soft)}
+@media (max-width:820px){.dep{grid-template-columns:auto minmax(0,1fr) minmax(110px,1fr)}.dep .solo-ancho{display:none}}
+.mapa{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center;margin:8px 0;max-width:560px}
+.estado{position:fixed;right:16px;bottom:16px;background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:8px;font-size:14px;display:none;max-width:360px;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+h3{font-size:14.5px;margin:18px 0 8px}
+.mut{color:var(--muted)}
+code{background:var(--soft);padding:0 4px;border-radius:4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Stock de causas pendientes · Cámaras del Trabajo</h1>
+  <span class="sub">Los archivos se procesan en esta computadora y no se envían a ningún lado · v<span id="ver"></span></span>
+</header>
+<main>
+
+<section class="paso" id="p1">
+  <h2><span class="num">1</span>Sede</h2>
+  <p class="ayuda">Si cargás la base del mes anterior, la sede se elige sola. Para una sede que no está en la lista, elegí <b>＋ Sede nueva</b> y cargá sus reportes en el paso 2.</p>
+  <div class="cuerpo fila">
+    <select id="sede"></select>
+    <span id="sedeInfo" class="mut"></span>
+  </div>
+  <div class="cuerpo" id="nueva"></div>
+</section>
+
+<section class="paso" id="p2">
+  <h2><span class="num">2</span>Archivos</h2>
+  <p class="ayuda">Arrastrá juntos: la <b>base del último cierre</b> (no hace falta en el primer cierre), los <b>4 reportes del SAC</b> (foto, remisiones, resoluciones, avocamiento y AVC) y, si cambió, la <b>tabla de códigos</b>. La app reconoce cada archivo por sus encabezados y su fila de filtros.</p>
+  <div class="cuerpo">
+    <div id="drop" tabindex="0">Soltá los archivos Excel acá, o hacé clic para elegirlos<input id="file" type="file" multiple accept=".xlsx,.xls,.xlsm" hidden></div>
+    <div id="baseInfo"></div>
+    <div id="tablasInfo"></div>
+    <div id="piezas"></div>
+    <div id="checklist"></div>
+  </div>
+</section>
+
+<section class="paso inactivo" id="p3">
+  <h2><span class="num">3</span>Fecha de corte y vista previa</h2>
+  <p class="ayuda">La fecha de corte sugerida es la del evento más reciente en los reportes. Confirmala o cambiala; los eventos posteriores no se cuentan.</p>
+  <div class="cuerpo">
+    <div class="fila"><label>Fecha de corte <input type="date" id="corte"></label>
+      <button id="calcular">Calcular vista previa</button><span id="corteNota" class="mut"></span></div>
+    <div id="errores"></div>
+    <div id="previa"></div>
+  </div>
+</section>
+
+<section class="paso inactivo" id="p4">
+  <h2><span class="num">4</span>Confirmar el cierre</h2>
+  <p class="ayuda">Al confirmar se descargan dos archivos: la <b>nueva base</b> (guardala, es el punto de partida del próximo mes) y el <b>informe</b>. El cierre confirmado no se modifica después.</p>
+  <div class="cuerpo">
+    <div class="fila"><label>Quién confirma <input type="text" id="autor" placeholder="Nombre y apellido"></label>
+      <button id="confirmar">Confirmar cierre y descargar</button>
+      <button id="borrador" class="sec">Descargar solo el informe (borrador)</button></div>
+    <div id="hecho"></div>
+  </div>
+</section>
+
+<section class="paso">
+  <details><summary>Cómo se usa y qué calcula</summary>
+  <div class="cuerpo" style="margin-top:8px">
+    <ol>
+      <li>Descargá del SAC los 4 reportes con la fecha del día: foto de expedientes (idealmente <i>todos los estados</i>), remisiones, resoluciones y avocamiento/AVC.</li>
+      <li>Abrí esta página, arrastrá la base del mes anterior junto con los reportes.</li>
+      <li>Revisá que cada archivo figure reconocido y sin columnas faltantes. Si una columna cambió de nombre, elegila en “Mapear columnas”.</li>
+      <li>Calculá la vista previa, confirmá la fecha de corte y revisá los avisos y los movimientos.</li>
+      <li>Confirmá el cierre: guardá la nueva base en la carpeta de siempre. El mes que viene, empezá por ella.</li>
+    </ol>
+    <p><b>Stock pendiente</b>: causa de tipo de proceso Ordinario, presente en la foto actual, en estado ACTIVO y sin resolución admitida al corte. En sedes multifuero, solo el universo laboral (grupo del trabajo o tipo de juicio de materia laboral).</p>
+    <p><b>Lo acreditado persiste</b>: una causa que no aparece en la foto no se borra ni se resuelve; queda como “No encontrada en el corte actual”.</p>
+    <p class="mut">El catálogo de resoluciones, el avocamiento y la configuración de cada sede están en el bloque <code>StockConfig</code> de este archivo.</p>
+  </div></details>
+</section>
+</main>
+<div class="estado" id="estado"></div>
+
+<script>/*@@XLSX@@*/</script>
+<script>/*@@CONFIG@@*/</script>
+<script>/*@@ENGINE@@*/</script>
+<script>/*@@IO@@*/</script>
+<script>/*@@UI@@*/</script>
+</body>
+</html>
